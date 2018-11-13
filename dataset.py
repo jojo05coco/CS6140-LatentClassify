@@ -16,8 +16,8 @@ class CLF_DS(D.Dataset):
         self.X = torch.load(train_x_pth)
         self.Y = torch.load(train_y_pth)
 
-        self.X = self.X[0:2000]
-        self.Y = self.Y[0:2000]
+        #self.X = self.X[0:2000]
+        #self.Y = self.Y[0:2000]
 
         self.desc = desc
 
