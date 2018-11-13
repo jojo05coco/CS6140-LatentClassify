@@ -52,23 +52,23 @@ class VAE(torch.nn.Module):
         # note that log(x^2) = 2*log(x); hence divide by 2 to get std_dev
         z = z_mu + eps * torch.exp(z_log_var/2.) 
         return z
-    
+        
     def encoder(self,x):
         x = self.hidden_1(x)
         x = F.relu(x)
         z_mean = self.z_mean(x)
         z_log_var = self.z_log_var(x)
         encoded = self.reparameterize(z_mean, z_log_var)
-        return z_mean, z_log_var, encoded
+        return [encoded,z_mean,z_log_var]
     
     def decoder(self,x):
         x = self.linear_3(x)
         x = F.relu(x)
         x = self.linear_4(x)
         decoded = F.sigmoid(x)
+        return decoded
         
-
     def forward(self, x):
-        [z_mean, z_log_var, encoded] = self.encoder(x)
-        decoded = self.decoder(encoded)
+        [encoded,z_mean,z_log_var] = self.encoder(x)
+        decoded                    = self.decoder(encoded)
         return z_mean, z_log_var, encoded, decoded
