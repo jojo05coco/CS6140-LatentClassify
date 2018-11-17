@@ -145,9 +145,11 @@ class Classifier:
 
                 loss = torch.nn.functional.nll_loss(log_softmax, targets)
 
-                pred_targets = log_softmax[0].max(0)[1]
+                pred_targets = torch.tensor(np.array(map(lambda r: r.max(0)[1], log_softmax)))
 
-                nfail = np.count_nonzero((targets - pred_targets).numpy())
+                target_diff = targets - pred_targets
+
+                nfail = np.count_nonzero((target_diff).numpy())
 
                 ncorrect = ncorrect + (len(targets) - nfail)
 
