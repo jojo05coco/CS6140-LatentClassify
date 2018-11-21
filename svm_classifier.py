@@ -1,9 +1,14 @@
 ## Use svm to classify data; svm from sklearn is used
 
+import os
+
 import numpy as np
 import torch # for loading train and test data
+import pickle
 
 from sklearn import svm
+
+from file_utils import create_folder, delete_folder, folder_exists
 
 class SVM_Classifier:
 
@@ -12,7 +17,15 @@ class SVM_Classifier:
     # train_y_pth : Path to the training targets .pth file
     # test_x_pth  : Path to the test latent codes .pth file
     # test_y_pth  : Path to the test targets .pth file
-    def __init__(self, train_x_pth, train_y_pth, test_x_pth, test_y_pth, kernel = 'rbf', C = 1):
+    def __init__(self, train_x_pth, train_y_pth, test_x_pth, test_y_pth, kernel = 'rbf', C = 1, report_folder = ""):
+
+        # record report folder
+        self.report_folder = report_folder
+        # sanitize
+        if self.report_folder != "":
+            delete_folder(self.report_folder)
+            create_folder(self.report_folder)
+            assert folder_exists(self.report_folder)
 
         self.train_x = torch.load(train_x_pth).detach().numpy()
         self.train_y = torch.load(train_y_pth).detach().numpy()
@@ -78,3 +91,29 @@ class SVM_Classifier:
         n_correct = self.NTest - n_fails
 
         return float(n_correct) / float(self.NTest)
+
+    # report
+    def report(self):
+
+        assert self.report_folder != ""
+        assert folder_exists(self.report_folder)
+
+        info_s = "SVM : C = " + str(self.C) + ", kernel = " + self.kernel + \
+              " | Train acc. : " + str(self.train_accuracy()) +             \
+              " | Test acc. : " + str(self.test_accuracy())
+
+        # Info file name
+        info_file_name = os.path.join(self.report_folder, "info.txt")
+        # write info to file
+        info_f = open(info_file_name, "w+")
+        info_f.write(info_s)
+        info_f.close()
+
+        # pickle self
+        pckle_file_name = os.path.join(self.report_folder, "model.pkl")
+        # write self to file
+        pckle_f = open(pckle_file_name, "w+")
+        pickle.dump(self, pckle_f)
+        pckle_f.close()
+
+################################################################################

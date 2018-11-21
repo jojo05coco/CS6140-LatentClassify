@@ -1,9 +1,13 @@
 ## All classifier classes
 
+import os
 import sys
 
 import numpy as np
 import torch
+import pickle
+
+from file_utils import delete_folder, create_folder, folder_exists
 
 VERBOSE = 1
 
@@ -17,16 +21,25 @@ class Classifier:
                  train_ds,
                  test_ds,
                  batch_size = 100,
-                 nepochs = 1000):
+                 nepochs = 1000,
+                 report_folder = "",
+                 desc = ""):
 
         # record inputs in self
-        self.train_ds   = train_ds
-        self.test_ds    = test_ds
-        self.batch_size = batch_size
-        self.nepochs    = nepochs
+        self.train_ds      = train_ds
+        self.test_ds       = test_ds
+        self.batch_size    = batch_size
+        self.nepochs       = nepochs
+        self.report_folder = report_folder
+        self.desc          = desc
+
+        # initialize epoch
+        self.epoch = 0
 
         # update intervals; in units for epoch
         self.update_interval = 1
+        # report gen interval; report every 10 epochs
+        self.report_interval = 10
 
         # print information
         print self.train_ds
@@ -45,6 +58,11 @@ class Classifier:
                                                         batch_size = self.batch_size,
                                                         shuffle = True)
 
+        # report folder setup
+        if self.report_folder != "":
+            delete_folder(self.report_folder)
+            create_folder(self.report_folder)
+
         # All classes that inherit must have a model variable that is a torch module
         #self.model
         #self.optimizer
@@ -52,7 +70,10 @@ class Classifier:
     def train(self):
 
         # for nepochs
-        for epoch in range(self.nepochs):
+        while self.epoch < self.nepochs:
+
+            # inc. self.epoch
+            self.epoch = self.epoch + 1
 
             self.model.train()
 
@@ -87,20 +108,23 @@ class Classifier:
                 self.optimizer.step()
 
                 if VERBOSE:
-                    verbose_s = "Epoch " + str(epoch) + ", Batch " + str(bidx) + " done. \r"
+                    verbose_s = "Epoch " + str(self.epoch) + ", Batch " + str(bidx) + " done. \r"
                     sys.stdout.write(verbose_s)
                     sys.stdout.flush()
 
-            if epoch % self.update_interval == 0:
+            if self.epoch % self.update_interval == 0:
 
                 train_loss, train_acc = self.train_loss()
                 test_loss, test_acc = self.test_loss()
 
-                print " Train Epoch : ", epoch,       \
+                print " Train Epoch : ", self.epoch,  \
                       " | Train loss : ", train_loss, \
                       " | Test loss : ", test_loss,   \
                       " | Train acc. : ", train_acc,  \
                       " | Test acc. : ", test_acc
+
+            if self.epoch % self.report_interval == 0:
+                self.report()
 
     def test(self, x):
 
@@ -159,6 +183,59 @@ class Classifier:
 
         return l, acc
 
+    def report(self):
+
+        assert folder_exists(self.report_folder)
+
+        # get test and train accuracy
+        train_acc = "Tr_acc_" + str(self.train_loss()[1])
+        test_acc  = "Ts_acc_" + str(self.test_loss()[1])
+
+        # create a folder to store current state
+        report_folder_now = os.path.join(self.report_folder,
+                                         self.train_ds.desc + "_" + \
+                                         self.desc + "_" + \
+                                         train_acc + "_" + \
+                                         test_acc)
+        delete_folder(report_folder_now)
+        create_folder(report_folder_now)
+        assert folder_exists(report_folder_now)
+
+        # Info file name
+        info_file_name = os.path.join(report_folder_now, "info.txt")
+        info_str = self.__str__()
+        # write info to file
+        info_f = open(info_file_name, "w+")
+        info_f.write(info_str)
+        info_f.close()
+
+        # pickle self
+        pckle_file_name = os.path.join(report_folder_now, "model.pkl")
+        # write self to file
+        pckle_f = open(pckle_file_name, "w+")
+        pickle.dump(self, pckle_f)
+        pckle_f.close()
+
+
+    def __str__(self):
+
+        # represent self in a string
+        s = "========================================================\n"
+        s = s + " Model : " + self.desc + "\n"
+        s = s + " Dataset Train - " + self.train_ds.desc   + "\n"
+        s = s + " Dataset Test  - " + self.test_ds.desc    + "\n"
+        s = s + " Batch size    - " + str(self.batch_size) + "\n"
+        s = s + " nepochs       - " + str(self.nepochs)    + "\n"
+        s = s + " epoch         - " + str(self.epoch)      + "\n"
+        s = s + " Train acc.    - " + str(self.train_loss()) + "\n"
+        s = s + " Test acc.     - " + str(self.test_loss()) + "\n"
+        s = s + "========================================================\n"
+
+        return s
+
+    def __repr__(self):
+        return self.__str__()
+
 ################################################################################
 
 # Model : linear-layer -> softmax
@@ -170,22 +247,28 @@ class Logistic_1L(Classifier):
                  test_ds,
                  learning_rate = 0.0005,
                  batch_size = 100,
-                 epochs = 1000):
+                 epochs = 1000,
+                 report_folder = "",
+                 desc = "Logistic_1L"):
 
         # let parent do all the work
         Classifier.__init__(self,
                             train_ds,
                             test_ds,
                             batch_size = batch_size,
-                            nepochs = epochs)
+                            nepochs = epochs,
+                            report_folder = report_folder,
+                            desc = desc)
 
         self.model     = torch.nn.Sequential(torch.nn.Linear(self.D, self.L),
                                              torch.nn.LogSoftmax(1))
         # optimizer
-        self.optimizer = torch.optim.SGD(self.model.parameters(),
-                                         lr = learning_rate,
-                                         momentum = 0.9,
-                                         weight_decay = 1.0)
+        #self.optimizer = torch.optim.SGD(self.model.parameters(),
+        #                                 lr = learning_rate,
+        #                                 momentum = 0.9,
+        #                                 weight_decay = 1.0)
+
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr = learning_rate)
 
 
 ################################################################################
@@ -199,14 +282,18 @@ class Logistic_2L(Classifier):
                  test_ds,
                  learning_rate = 0.0005,
                  batch_size = 100,
-                 epochs = 1000):
+                 epochs = 1000,
+                 report_folder = "",
+                 desc = "Logistic_2L"):
 
         # let parent do all the work
         Classifier.__init__(self,
                             train_ds,
                             test_ds,
                             batch_size = batch_size,
-                            nepochs = epochs)
+                            nepochs = epochs,
+                            report_folder = report_folder,
+                            desc = desc)
 
         # hidden layer 1 dimensions;
         self.n_h1 = self.D + 50 # Arbitrary
@@ -216,10 +303,11 @@ class Logistic_2L(Classifier):
                                              torch.nn.Linear(self.n_h1, self.L),
                                              torch.nn.LogSoftmax(1))
         # optimizer
-        self.optimizer = torch.optim.SGD(self.model.parameters(),
-                                         lr = learning_rate,
-                                         momentum = 0.9,
-                                         weight_decay = 1.0)
+        #self.optimizer = torch.optim.SGD(self.model.parameters(),
+        #                                 lr = learning_rate,
+        #                                 momentum = 0.9,
+        #                                 weight_decay = 1.0)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr = learning_rate)
 
 ##################################################################################
 
@@ -232,14 +320,18 @@ class Logistic_LRL(Classifier):
                  test_ds,
                  learning_rate = 0.0005,
                  batch_size = 100,
-                 epochs = 1000):
+                 epochs = 1000,
+                 report_folder = "",
+                 desc = "Logistic_LRL"):
 
         # let parent do all the work
         Classifier.__init__(self,
                             train_ds,
                             test_ds,
                             batch_size = batch_size,
-                            nepochs = epochs)
+                            nepochs = epochs,
+                            report_folder = report_folder,
+                            desc = desc)
 
         # hidden layer 1 dimensions;
         self.n_h1 = self.D + 50 # Arbitrary
@@ -250,7 +342,9 @@ class Logistic_LRL(Classifier):
                                              torch.nn.Linear(self.n_h1, self.L),
                                              torch.nn.LogSoftmax(1))
         # optimizer
-        self.optimizer = torch.optim.SGD(self.model.parameters(),
-                                         lr = learning_rate,
-                                         momentum = 0.9,
-                                         weight_decay = 1.0)
+        #self.optimizer = torch.optim.SGD(self.model.parameters(),
+        #                                 lr = learning_rate,
+        #                                 momentum = 0.9,
+        #                                 weight_decay = 1.0)
+
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr = learning_rate)
