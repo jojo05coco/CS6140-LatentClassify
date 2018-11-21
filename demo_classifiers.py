@@ -1,10 +1,18 @@
 ## Demo program on how to use the classifiers
 
+import os
+import datetime
+
 from dataset import CLF_DS
 
 from classifiers import Logistic_1L, Logistic_2L, Logistic_LRL
 
 from svm_classifier import SVM_Classifier
+
+## Utils #######################################################################
+
+def timestamp():
+    return datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
 # latent codes train path
 #latent_codes_train = "./test/AE_MNIST-latent_tr.pth"
@@ -12,25 +20,52 @@ from svm_classifier import SVM_Classifier
 #latent_codes_test  = "./test/AE_MNIST-latent_ts.pth"
 #targets_test       = "./test/AE_MNIST-targets_ts.pth"
 
-latent_codes_train = "./test/AE_FMNIST_latent_tr.pth"
-targets_train      = "./test/AE_FMNIST_targets_tr.pth"
-latent_codes_test  = "./test/AE_FMNIST_latent_ts.pth"
-targets_test       = "./test/AE_FMNIST_targets_ts.pth"
+#latent_codes_train = "./test/AE_FMNIST_latent_tr.pth"
+#targets_train      = "./test/AE_FMNIST_targets_tr.pth"
+#latent_codes_test  = "./test/AE_FMNIST_latent_ts.pth"
+#targets_test       = "./test/AE_FMNIST_targets_ts.pth"
+
+#latent_codes_train = "./test/VAE_MNIST-latent_tr.pth"
+#targets_train      = "./test/VAE_MNIST-targets_tr.pth"
+#latent_codes_test  = "./test/VAE_MNIST-latent_ts.pth"
+#targets_test       = "./test/VAE_MNIST-targets_ts.pth"
+
+latent_codes_train = "./test/VAE_FMNIST-latent_tr.pth"
+targets_train      = "./test/VAE_FMNIST-targets_tr.pth"
+latent_codes_test  = "./test/VAE_FMNIST-latent_ts.pth"
+targets_test       = "./test/VAE_FMNIST-targets_ts.pth"
 
 ## SVM classifier ##############################################################
 
-svm_clf = SVM_Classifier(latent_codes_train, targets_train, latent_codes_test, targets_test)
+Cs = [1, 10, 20, 50]
 
-svm_clf.train()
+for c in Cs:
+    report_folder = "SVM_" + str(c)
+    svm_clf = SVM_Classifier(latent_codes_train,
+                             targets_train,
+                             latent_codes_test,
+                             targets_test,
+                             C = c,
+                             report_folder = report_folder)
 
-exit(-1)
+    svm_clf.train()
+    svm_clf.report()
 
 ## Neural networks #############################################################
 
-train_ds = CLF_DS(latent_codes_train, targets_train, "FMNIST train dataset")
-test_ds  = CLF_DS(latent_codes_test, targets_test, "FMNIST test dataset")
+train_ds = CLF_DS(latent_codes_train, targets_train, "VAE FMNIST train dataset")
+test_ds  = CLF_DS(latent_codes_test, targets_test, "VAE FMNIST test dataset")
 
-#clf = Logistic_1L(train_ds, test_ds, batch_size = 1000)
-#clf = Logistic_2L(train_ds, test_ds, learning_rate = 0.00001, batch_size = 500, epochs = 10000)
-clf = Logistic_LRL(train_ds, test_ds, learning_rate = 0.00001, batch_size = 500, epochs = 10000)
+clf = Logistic_LRL(train_ds, test_ds, batch_size = 1000, epochs = 150,
+                   report_folder = "Logistic_LRL_" + timestamp())
 clf.train()
+
+clf = Logistic_1L(train_ds, test_ds, batch_size = 1000, epochs = 150,
+                  report_folder = "Logistic_1L_" + timestamp())
+clf.train()
+
+clf = Logistic_2L(train_ds, test_ds, batch_size = 1000, epochs = 150,
+                  report_folder = "Logistic_2L_" + timestamp())
+clf.train()
+
+
