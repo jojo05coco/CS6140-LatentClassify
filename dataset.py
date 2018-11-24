@@ -3,6 +3,7 @@
 #
 
 import torch
+import numpy as np
 import pandas as pd
 from torch.utils import data as D
 
@@ -13,8 +14,15 @@ class CLF_DS(D.Dataset):
     ## constructor
     def __init__(self, train_x_pth, train_y_pth, desc = "dataset"):
 
-        self.X = torch.load(train_x_pth)
-        self.Y = torch.load(train_y_pth)
+        if train_x_pth.endswith("npy"):
+            self.X = np.load(train_x_pth)
+        else:
+            self.X = torch.load(train_x_pth)
+
+        if train_y_pth.endswith("npy"):
+            self.Y = np.load(train_y_pth)
+        else:
+            self.Y = torch.load(train_y_pth)
 
         #self.X = self.X[0:2000]
         #self.Y = self.Y[0:2000]

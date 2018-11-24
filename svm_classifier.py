@@ -13,10 +13,10 @@ from file_utils import create_folder, delete_folder, folder_exists
 class SVM_Classifier:
 
     ## Constructor
-    # train_x_pth : Path to the training latent codes .pth file
-    # train_y_pth : Path to the training targets .pth file
-    # test_x_pth  : Path to the test latent codes .pth file
-    # test_y_pth  : Path to the test targets .pth file
+    # train_x_pth : Path to the training latent codes .pth/.npy file
+    # train_y_pth : Path to the training targets .pth/.npy file
+    # test_x_pth  : Path to the test latent codes .pth/.npy file
+    # test_y_pth  : Path to the test targets .pth/.npy file
     def __init__(self, train_x_pth, train_y_pth, test_x_pth, test_y_pth, kernel = 'rbf', C = 1, report_folder = ""):
 
         # record report folder
@@ -27,10 +27,25 @@ class SVM_Classifier:
             create_folder(self.report_folder)
             assert folder_exists(self.report_folder)
 
-        self.train_x = torch.load(train_x_pth).detach().numpy()
-        self.train_y = torch.load(train_y_pth).detach().numpy()
-        self.test_x  = torch.load(test_x_pth).detach().numpy()
-        self.test_y  = torch.load(test_y_pth).detach().numpy()
+        if train_x_pth.endswith("npy"):
+            self.train_x = np.load(train_x_pth)
+        else:
+            self.train_x = torch.load(train_x_pth).detach().numpy()
+
+        if train_y_pth.endswith("npy"):
+            self.train_y = np.load(train_y_pth)
+        else:
+            self.train_y = torch.load(train_y_pth).detach().numpy()
+
+        if test_x_pth.endswith("npy"):
+            self.test_x  = np.load(test_x_pth)
+        else:
+            self.test_x  = torch.load(test_x_pth).detach().numpy()
+
+        if test_y_pth.endswith("npy"):
+            self.test_y  = np.load(test_y_pth)
+        else:
+            self.test_y  = torch.load(test_y_pth).detach().numpy()
 
         #self.train_x = self.train_x[0:2000]
         #self.train_y = self.train_y[0:2000]
