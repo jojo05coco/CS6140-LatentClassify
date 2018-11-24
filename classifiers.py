@@ -7,6 +7,7 @@ import math
 import matplotlib.pyplot as plt
 
 import numpy as np
+from numpy import linalg as LA
 import torch
 import pickle
 
@@ -230,8 +231,8 @@ class Classifier:
                       y,                # true y
                       y_target,         # make model think adv_x is of class y_target
                       adv_x = None,     # adversarial x; if None, initialize randomly
-                      eta = 0.00001,
-                      lam = 0.1,
+                      eta = 0.001,
+                      lam = 0.005,
                       converge_fn = None,
                       debug = False):
 
@@ -320,29 +321,30 @@ class Classifier:
 
             if debug and (time % image_update_interval == 0 or diff_norm - input_diff > 1.0):
 
-                fig = plt.figure(figsize=(15, 5))
-                #fig = plt.figure()
+                #fig = plt.figure(figsize=(15, 5))
+                ##fig = plt.figure()
 
-                diff_img = adv_x.clone() - x.clone()
-                diff_img = diff_img.detach().numpy()
-                diff_img = np.abs(diff_img)
-                diff_img = diff_img.reshape((28, 28))
+                #diff_img = adv_x.clone() - x.clone()
+                #diff_img = diff_img.detach().numpy()
+                #diff_img = np.abs(diff_img)
+                #diff_img = diff_img.reshape((28, 28))
 
-                adv_img = adv_x.reshape((28, 28))
-                adv_img = adv_img.detach().numpy()
+                #adv_img = adv_x.reshape((28, 28))
+                #adv_img = adv_img.detach().numpy()
 
-                # adversarial image
-                fig.add_subplot(1, 3, 1)
-                plt.imshow(adv_img, cmap = 'Greys')
-                # diff map
-                fig.add_subplot(1, 3, 2)
-                plt.imshow(diff_img, cmap = 'Greys')
-                # probabilities
-                fig.add_subplot(1, 3, 3)
-                p_range = np.arange(0, 10, 1)
-                p = np.exp(log_softmax.detach().numpy().reshape((self.L)))
-                plt.bar(p_range, p)
-                plt.show()
+                ## adversarial image
+                #fig.add_subplot(1, 3, 1)
+                #plt.imshow(adv_img, cmap = 'Greys')
+                ## diff map
+                #fig.add_subplot(1, 3, 2)
+                #plt.imshow(diff_img, cmap = 'Greys')
+                ## probabilities
+                #fig.add_subplot(1, 3, 3)
+                #p_range = np.arange(0, 10, 1)
+                #p = np.exp(log_softmax.detach().numpy().reshape((self.L)))
+                #plt.bar(p_range, p)
+                #plt.show()
+                pass
 
             # update input_diff; it diff_norm is significantly bigger
             if diff_norm - input_diff > 1.0:
@@ -366,6 +368,88 @@ class Classifier:
                                                      adv_diff_norm = diff_norm,
                                                      model_desc = self.desc)
                     return adv_example
+
+
+    # reduce rank of weight matrices in all linear layers
+    # make precent percentage of eigen values from each linear layer
+    # zero and return the test and train accuracy
+    # reduce rank and report accuracy on adversarial examples
+    def reduce_rank(self, percent, adversaries = None):
+
+        assert percent <= 100
+        assert percent >= 0
+
+        # save all weights before doing anything at all
+        original_weights = []
+        for l in self.model.modules():
+
+            if type(l).__name__ != "Linear":
+                continue
+
+            original_weights.append(l.weight.clone())
+
+        if len(original_weights) == 1:
+            # nothing to do
+            return
+
+        # modify weights
+        for l in self.model.modules():
+
+            if type(l).__name__ != "Linear":
+                continue
+
+            # convert the weight matrix to numpy so it is easy to operate
+            w = l.weight.clone().detach().numpy()
+
+            # do svd
+            evectors, evalues, vt = LA.svd(w, full_matrices = False)
+
+            # nodes in this layer
+            sl = w.shape[0]
+
+            # number of eigen values to make zero
+            nreduce = math.ceil(float(percent) * float(sl) / 100.0)
+
+            print "nreduce ", nreduce, " / ", sl
+
+            for i in range(1, int(nreduce) + 1):
+                evalues[-1 * i] = 0.0
+
+            # rank reduced weight matrix
+            w = np.matmul(np.matmul(evectors, np.diag(evalues)), vt)
+
+            # assign new weights to layer
+            l.weight = torch.nn.Parameter(torch.tensor(w))
+
+            # svd only the first layer
+            #break
+
+        train_acc = self.train_loss()[1]
+        test_acc  = self.test_loss()[1]
+
+        # adversarial accuracy
+        if adversaries is None or len(adversaries) == 0:
+            adv_acc = None
+        else:
+            n_correct = 0
+            for adversary in adversaries:
+                adv_prediction = self.test(adversary.adv_x)
+                if adv_prediction.item() == adversary.y.item():
+                    n_correct = n_correct + 1
+
+            adv_acc = float(n_correct) / len(adversaries)
+
+        # replace all modified weights with original weights
+        original_weight_idx = 0
+        for l in self.model.modules():
+
+            if type(l).__name__ != "Linear":
+                continue
+
+            l.weight = torch.nn.Parameter(original_weights[original_weight_idx])
+            original_weight_idx = original_weight_idx + 1
+
+        return train_acc, test_acc, adv_acc
 
     def probs(self, x):
 
