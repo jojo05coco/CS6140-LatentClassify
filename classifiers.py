@@ -232,7 +232,7 @@ class Classifier:
                       y_target,         # make model think adv_x is of class y_target
                       adv_x = None,     # adversarial x; if None, initialize randomly
                       eta = 0.001,
-                      lam = 0.005,
+                      lam = 0.001,
                       converge_fn = None,
                       debug = False):
 
@@ -261,7 +261,7 @@ class Classifier:
 
         self.model.eval()
 
-        times = 100000
+        times = 5000
         time  = 0
 
         input_diff = 0.0
@@ -294,6 +294,10 @@ class Classifier:
 
             time = time + 1
 
+            # proactive change of learning rate
+            if time % 200 == 0:
+                eta = min(eta * 1.5, 1.0)
+
             # calculate norm of difference between adv_x and x
             diff_v = (adv_x - x).detach().numpy()
             diff_v = diff_v.reshape((self.D))
@@ -308,12 +312,13 @@ class Classifier:
                 # input gradient norm
                 ipg_norm = l2(input_g.numpy().reshape((self.D)))
 
-                verbose_s = "Adv. iteration : " + str(time)             +                                               \
+                verbose_s = "Adv. iter. : "     + str(time)             +                                               \
                             " | L2 : "          + str(diff_norm)        +                                               \
                             " | "               + str(y.item())         + " - conf. : " + str(y_conf) + "%"  +          \
                             " | "               + str(y_target.item())  + " - conf. : " + str(y_target_conf) + "%" +    \
-                            " | InputG norm : " + str(ipg_norm)         +                                               \
-                            " , done. \r"
+                            " | InG norm : "    + str(ipg_norm)         +                                               \
+                            " | eta : "         + str(eta)              +                                               \
+                            " | lam : "         + str(lam)              + "\r"
 
                 sys.stdout.write(verbose_s)
                 sys.stdout.flush()
@@ -368,6 +373,9 @@ class Classifier:
                                                      adv_diff_norm = diff_norm,
                                                      model_desc = self.desc)
                     return adv_example
+
+        # exhausted max times
+        return None
 
 
     # reduce rank of weight matrices in all linear layers

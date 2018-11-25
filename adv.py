@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from classifiers import Logistic_LRL, Logistic_2L, Logistic_1L, AdversarialExample
+from svm_classifier import SVM_Classifier
 from dataset import CLF_DS
 
 from file_utils import create_folder, delete_folder, folder_exists
@@ -27,24 +28,78 @@ def timestamp():
 
 def train_mnist():
 
-    trans = transforms.Compose([transforms.ToTensor()])
-    train_set = dset.MNIST(root = root, train = True, transform = trans, download = True)
-    test_set = dset.MNIST(root = root, train = False, transform = trans, download = True)
+    #trans = transforms.Compose([transforms.ToTensor()])
+    #train_set = dset.MNIST(root = root, train = True, transform = trans, download = True)
+    #test_set = dset.MNIST(root = root, train = False, transform = trans, download = True)
+
+    #print "Train feature set shape ", train_set.train_data.shape
+    #print "Train labels set shape ", train_set.train_labels.shape
+
+    ## save the data
+    ## train features
+    #train_features = train_set.train_data.numpy()
+    #train_labels   = train_set.train_labels.numpy()
+    #test_features  = test_set.test_data.numpy()
+    #test_labels    = test_set.test_labels.numpy()
+
+    #train_features = np.array(map(lambda img: img.flatten(), train_features))
+    #test_features = np.array(map(lambda img: img.flatten(), test_features))
+
+    ## shapes
+    #print "Train features shape ", train_features.shape
+    #print "Train labels shape ", train_labels.shape
+    #print "Test features shape ", test_features.shape
+    #print "Test labels shape ", test_labels.shape
+
+    #f = open("./test/IMG_MNIST_image_tr.npy", "wb+")
+    #np.save(f, train_features)
+    #f.close()
+
+    #f = open("./test/IMG_MNIST_targets_tr.npy", "wb+")
+    #np.save(f, train_labels)
+    #f.close()
+
+    #f = open("./test/IMG_MNIST_image_ts.npy", "wb+")
+    #np.save(f, test_features)
+    #f.close()
+
+    #f = open("./test/IMG_MNIST_targets_ts.npy", "wb+")
+    #np.save(f, test_labels)
+    #f.close()
+
+    train_x = "./test/IMG_MNIST_image_tr.npy"
+    train_y = "./test/IMG_MNIST_targets_tr.npy"
+    test_x = "./test/IMG_MNIST_image_ts.npy"
+    test_y = "./test/IMG_MNIST_targets_ts.npy"
+
+    Cs = [1, 10, 20, 50]
+
+    for c in Cs:
+        report_folder = "MNIST_IMG_SVM_" + str(c)
+        svm_clf = SVM_Classifier(train_x,
+                                 train_y,
+                                 test_x,
+                                 test_y,
+                                 C = c,
+                                 report_folder = report_folder)
+
+        svm_clf.train()
+        svm_clf.report()
 
     #train_loader = torch.utils.data.DataLoader(dataset = train_set, batch_size = 1, shuffle = True)
 
-    clf = Logistic_LRL(train_set, test_set, batch_size = 1000, epochs = 150, n_h1 = 30,
-                       report_folder = "Logistic_LRL_" + timestamp(), is_CLF_DS = False)
-    clf.train()
+    #clf = Logistic_LRL(train_set, test_set, batch_size = 1000, epochs = 150, n_h1 = 30,
+    #                   report_folder = "Logistic_LRL_" + timestamp(), is_CLF_DS = False)
+    #clf.train()
 
-    clf = Logistic_2L(train_set, test_set, batch_size = 1000, epochs = 50, n_h1 = 30,
-                       report_folder = "MNIST_img_Logistic_2L_" + timestamp(), is_CLF_DS = False)
+    #clf = Logistic_2L(train_set, test_set, batch_size = 1000, epochs = 50, n_h1 = 30,
+    #                   report_folder = "MNIST_img_Logistic_2L_" + timestamp(), is_CLF_DS = False)
 
-    clf.train()
+    #clf.train()
 
-    clf = Logistic_1L(train_set, test_set, batch_size = 1000, epochs = 50,
-                       report_folder = "MNIST_img_Logistic_LRL_" + timestamp(), is_CLF_DS = False)
-    clf.train()
+    #clf = Logistic_1L(train_set, test_set, batch_size = 1000, epochs = 50,
+    #                   report_folder = "MNIST_img_Logistic_LRL_" + timestamp(), is_CLF_DS = False)
+    #clf.train()
 
 def generate_advex(model_paths, report_folder = ""):
 
@@ -68,7 +123,7 @@ def generate_advex(model_paths, report_folder = ""):
 
         # we need 5 data points from each label
         # we have 10 labels
-        data_points = random_data_points(model.test_ds, model.L, 5)
+        data_points = random_data_points(model, model.test_ds, model.L, 5)
         print "Model L ", model.L, " | ", len(data_points)
         assert len(data_points) == model.L * 5
 
@@ -98,9 +153,17 @@ def generate_advex(model_paths, report_folder = ""):
                                                 adv_x = x,
                                                 y_target = y_target,
                                                 #converge_fn = lambda target_p, diff_norm: diff_norm > 1.0 or target_p > 95.0,
-                                                converge_fn = lambda target_p, diff_norm: target_p > 50.0,
+                                                converge_fn = lambda target_p, diff_norm: target_p > 95.0,
                                                 debug = True)
                     adv_examples.append(advex)
+
+
+        # how many non None examples did we get ?
+        n_none = len(filter(lambda ex: ex is None, adv_examples))
+        print "\n", len(adv_examples) - n_none, " / ", len(adv_examples), " Valid "
+        # How many samples under tolerence
+        n_tol = len(filter(lambda ex: ex is not None and ex.adv_diff_norm < 51.0, adv_examples))
+        print n_tol, " / ", len(adv_examples), " tolerant samples"
 
         # store adversarial examples in a folder
         if report_folder != "":
@@ -120,6 +183,10 @@ def generate_advex(model_paths, report_folder = ""):
 ################################################################################
 
 ####
+
+#train_mnist()
+
+#exit(-1)
 
 # train_mnist()
 
@@ -147,16 +214,24 @@ model_paths_fmnist_vae = ["./checkpoints/VAE_FMNIST_MODELS/Logistic_1L_2018-11-2
         "./checkpoints/VAE_FMNIST_MODELS/Logistic_2L_2018-11-20_04-17-20/VAE FMNIST train dataset_Logistic_2L_Tr_acc_0.7575_Ts_acc_0.7463/model.pkl",
         "./checkpoints/VAE_FMNIST_MODELS/Logistic_LRL_2018-11-20_00-40-34/VAE FMNIST train dataset_Logistic_LRL_Tr_acc_0.804583333333_Ts_acc_0.7966/model.pkl"]
 
+model_paths_fmnist_ae_proj = ["./checkpoints/PROJ_FMNIST_MODELS/Logistic_1L_2018-11-24_21-01-00/Projection AE FMNIST train dataset_Logistic_1L_Tr_acc_0.762166666667_Ts_acc_0.753/model.pkl",
+        "./checkpoints/PROJ_FMNIST_MODELS/Logistic_2L_2018-11-24_21-05-34/Projection AE FMNIST train dataset_Logistic_2L_Tr_acc_0.7552_Ts_acc_0.7474/model.pkl",
+        "./checkpoints/PROJ_FMNIST_MODELS/Logistic_LRL_2018-11-24_20-56-12/Projection AE FMNIST train dataset_Logistic_LRL_Tr_acc_0.810433333333_Ts_acc_0.7923/model.pkl"]
+
 ## generate advex
 
-generate_advex(model_paths_mnist_img, "./mnist_img_advex")
+generate_advex(model_paths_mnist_img, "./mnist_img_95conf_advex")
 
-generate_advex(model_paths_fmnist_img, "./fmnist_img_advex")
+generate_advex(model_paths_fmnist_img, "./fmnist_img_95conf_advex")
 
-generate_advex(model_paths_mnist_ae, "./mnist_ae_advex")
+generate_advex(model_paths_mnist_ae, "./mnist_ae_95conf_advex")
 
-generate_advex(model_paths_mnist_vae, "./mnist_vae_advex")
+generate_advex(model_paths_mnist_vae, "./mnist_vae_95conf_advex")
 
-generate_advex(model_paths_fmnist_ae, "./fmnist_ae_advex")
+generate_advex(model_paths_fmnist_ae, "./fmnist_ae_95conf_advex")
 
-generate_advex(model_paths_fmnist_vae, "./fmnist_vae_advex")
+generate_advex(model_paths_fmnist_vae, "./fmnist_vae_95conf_advex")
+
+generate_advex(model_paths_fmnist_ae_proj, "./fmnist_ae_proj_95conf_advex")
+
+exit(-1)

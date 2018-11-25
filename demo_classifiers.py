@@ -35,29 +35,47 @@ def timestamp():
 #latent_codes_test  = "./test/VAE_FMNIST-latent_ts.pth"
 #targets_test       = "./test/VAE_FMNIST-targets_ts.pth"
 
-latent_codes_train = "./test/AE_MNIST_L2latent_tr.npy"
-targets_train      = "./test/VAE_FMNIST-targets_tr.pth"
-latent_codes_test  = "./test/AE_MNIST_L2latent_ts.npy"
-targets_test       = "./test/VAE_FMNIST-targets_ts.pth"
+#latent_codes_train = "./test/AE_MNIST_L2latent_tr.npy"
+#targets_train      = "./test/AE_MNIST-targets_tr.pth"
+#latent_codes_test  = "./test/AE_MNIST_L2latent_ts.npy"
+#targets_test       = "./test/AE_MNIST-targets_ts.pth"
+
+#latent_codes_train = "./test/AE_MNIST_L2latent_tr.npy"
+#targets_train      = "./test/AE_MNIST-targets_tr.pth"
+#latent_codes_test  = "./test/AE_MNIST_L2latent_ts.npy"
+#targets_test       = "./test/AE_MNIST-targets_ts.pth"
+
+latent_codes_train = "./test/AE_FMNIST_L2latent_tr.npy"
+targets_train      = "./test/AE_FMNIST_targets_tr.pth"
+latent_codes_test  = "./test/AE_FMNIST_L2latent_ts.npy"
+targets_test       = "./test/AE_FMNIST_targets_ts.pth"
+
+svm_clf = SVM_Classifier(latent_codes_train,
+                         targets_train,
+                         latent_codes_test,
+                         targets_test,
+                         C = 0.1,
+                         report_folder = "./SVM_FMNIST_PROJ_C_0.1")
+
+svm_clf.train()
+svm_clf.report()
+
+exit(-1)
 
 ## Neural networks #############################################################
 
 train_ds = CLF_DS(latent_codes_train, targets_train, "Projection AE MNIST train dataset")
 test_ds  = CLF_DS(latent_codes_test, targets_test, "Projection AE MNIST test dataset")
 
-clf = Logistic_LRLRL(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.001,
-                    report_folder = "Logistic_LRLRL_" + timestamp())
-clf.train()
-
-clf = Logistic_LRL(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
+clf = Logistic_LRL(train_ds, test_ds, batch_size = 1000, epochs = 150,
                    report_folder = "Logistic_LRL_" + timestamp())
 clf.train()
 
-clf = Logistic_1L(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
+clf = Logistic_1L(train_ds, test_ds, batch_size = 1000, epochs = 150,
                   report_folder = "Logistic_1L_" + timestamp())
 clf.train()
 
-clf = Logistic_2L(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
+clf = Logistic_2L(train_ds, test_ds, batch_size = 1000, epochs = 150,
                   report_folder = "Logistic_2L_" + timestamp())
 clf.train()
 
