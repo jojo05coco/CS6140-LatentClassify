@@ -388,10 +388,6 @@ class Classifier:
 
             original_weights.append(l.weight.clone())
 
-        if len(original_weights) == 1:
-            # nothing to do
-            return
-
         # modify weights
         for l in self.model.modules():
 
@@ -404,16 +400,17 @@ class Classifier:
             # do svd
             evectors, evalues, vt = LA.svd(w, full_matrices = False)
 
-            # nodes in this layer
-            sl = w.shape[0]
+            # number of eigen values
+            nev = evalues.shape[0]
 
             # number of eigen values to make zero
-            nreduce = math.ceil(float(percent) * float(sl) / 100.0)
+            nreduce = math.ceil(float(percent) * float(nev) / 100.0)
 
-            print "nreduce ", nreduce, " / ", sl
+            #print "nreduce ", nreduce, " / ", nev
 
             for i in range(1, int(nreduce) + 1):
-                evalues[-1 * i] = 0.0
+                # downgrade eigen values
+                evalues[-1 * i] = evalues[-1 * i] / 10.0
 
             # rank reduced weight matrix
             w = np.matmul(np.matmul(evectors, np.diag(evalues)), vt)
@@ -449,7 +446,7 @@ class Classifier:
             l.weight = torch.nn.Parameter(original_weights[original_weight_idx])
             original_weight_idx = original_weight_idx + 1
 
-        return train_acc, test_acc, adv_acc
+        return (train_acc, test_acc, adv_acc)
 
     def probs(self, x):
 
@@ -717,6 +714,58 @@ class Logistic_LRL(Classifier):
                                              torch.nn.LeakyReLU(),
                                              torch.nn.Dropout(0.2),
                                              torch.nn.Linear(self.n_h1, self.L),
+                                             torch.nn.LogSoftmax(1))
+        # optimizer
+        #self.optimizer = torch.optim.SGD(self.model.parameters(),
+        #                                 lr = learning_rate,
+        #                                 momentum = 0.9,
+        #                                 weight_decay = 1.0)
+
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr = learning_rate)
+
+################################################################################
+
+# Model linear-layer -> LeakyRelu -> linear-layer -> Leaky Relu -> linear-layer -> softmax
+class Logistic_LRLRL(Classifier):
+
+    ## Constructor
+    def __init__(self,
+                 train_ds,
+                 test_ds,
+                 learning_rate = 0.0005,
+                 batch_size = 100,
+                 epochs = 1000,
+                 n_h1 = 0,
+                 report_folder = "",
+                 desc = "Logistic_LRL",
+                 is_CLF_DS = True):
+
+        # let parent do all the work
+        Classifier.__init__(self,
+                            train_ds,
+                            test_ds,
+                            batch_size = batch_size,
+                            learning_rate = learning_rate,
+                            nepochs = epochs,
+                            report_folder = report_folder,
+                            desc = desc,
+                            is_CLF_DS = is_CLF_DS)
+
+        # hidden layer 1 dimensions;
+        if n_h1 != 0:
+            # hidden layer nodes specified
+            self.n_h1 = n_h1
+        else:
+            self.n_h1 = self.D + 50 # Arbitrary
+
+        self.n_h2 = self.n_h1
+
+        self.model     = torch.nn.Sequential(torch.nn.Linear(self.D, self.n_h1),
+                                             #torch.nn.LeakyReLU(),
+                                             #torch.nn.Dropout(0.2),
+                                             torch.nn.Linear(self.n_h1, self.n_h2),
+                                             torch.nn.LeakyReLU(),
+                                             torch.nn.Linear(self.n_h2, self.L),
                                              torch.nn.LogSoftmax(1))
         # optimizer
         #self.optimizer = torch.optim.SGD(self.model.parameters(),

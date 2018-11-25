@@ -5,7 +5,7 @@ import datetime
 
 from dataset import CLF_DS
 
-from classifiers import Logistic_1L, Logistic_2L, Logistic_LRL
+from classifiers import Logistic_1L, Logistic_2L, Logistic_LRL, Logistic_LRLRL
 
 from svm_classifier import SVM_Classifier
 
@@ -45,15 +45,19 @@ targets_test       = "./test/VAE_FMNIST-targets_ts.pth"
 train_ds = CLF_DS(latent_codes_train, targets_train, "Projection AE MNIST train dataset")
 test_ds  = CLF_DS(latent_codes_test, targets_test, "Projection AE MNIST test dataset")
 
-clf = Logistic_LRL(train_ds, test_ds, batch_size = 1000, epochs = 2000,
+clf = Logistic_LRLRL(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.001,
+                    report_folder = "Logistic_LRLRL_" + timestamp())
+clf.train()
+
+clf = Logistic_LRL(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
                    report_folder = "Logistic_LRL_" + timestamp())
 clf.train()
 
-clf = Logistic_1L(train_ds, test_ds, batch_size = 1000, epochs = 2000,
+clf = Logistic_1L(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
                   report_folder = "Logistic_1L_" + timestamp())
 clf.train()
 
-clf = Logistic_2L(train_ds, test_ds, batch_size = 1000, epochs = 2000,
+clf = Logistic_2L(train_ds, test_ds, batch_size = 1000, epochs = 2000, learning_rate = 0.00005,
                   report_folder = "Logistic_2L_" + timestamp())
 clf.train()
 
