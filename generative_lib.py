@@ -107,6 +107,42 @@ def froze_weights(net):
     for param in net.parameters():
         param.requires_grad = False
         
+# copy decoder in generator AE
+def AEcopyGen(model,num_features,num_hidden_1):
+    
+    generator = AE_1L_gen(num_features,num_hidden_1)
+    
+    # copying weight in the generator
+    net_weight_dict = model.state_dict()
+    gen_weight_dict = {}
+
+    gen_weight_dict['linear_2.weight'] = net_weight_dict['linear_2.weight']
+    gen_weight_dict['linear_2.bias']   = net_weight_dict['linear_2.bias']
+
+    generator.load_state_dict(gen_weight_dict)
+    froze_weights(generator)
+    
+    return generator
+
+# copy decoder in generator VAE
+def VAEcopyGen(model,num_features,num_hidden_1,num_latent):
+    
+    generator = VAE_gen(num_features,num_hidden_1,num_latent)
+    
+    # copying weight in the generator
+    net_weight_dict = model.state_dict()
+    gen_weight_dict = {}
+
+    gen_weight_dict['linear_3.weight'] = net_weight_dict['linear_3.weight']
+    gen_weight_dict['linear_3.bias']   = net_weight_dict['linear_3.bias']
+    gen_weight_dict['linear_4.weight'] = net_weight_dict['linear_4.weight']
+    gen_weight_dict['linear_4.bias']   = net_weight_dict['linear_4.bias']
+
+    generator.load_state_dict(gen_weight_dict)
+    froze_weights(generator)
+    
+    return generator
+        
 ########## Projection ###############
 def L2_Project(generator, Gstar, maxit, x0, gamma):
     
