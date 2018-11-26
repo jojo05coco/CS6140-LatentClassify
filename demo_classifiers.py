@@ -50,18 +50,6 @@ targets_train      = "./test/AE_FMNIST_targets_tr.pth"
 latent_codes_test  = "./test/AE_FMNIST_L2latent_ts.npy"
 targets_test       = "./test/AE_FMNIST_targets_ts.pth"
 
-svm_clf = SVM_Classifier(latent_codes_train,
-                         targets_train,
-                         latent_codes_test,
-                         targets_test,
-                         C = 0.1,
-                         report_folder = "./SVM_FMNIST_PROJ_C_0.1")
-
-svm_clf.train()
-svm_clf.report()
-
-exit(-1)
-
 ## Neural networks #############################################################
 
 train_ds = CLF_DS(latent_codes_train, targets_train, "Projection AE MNIST train dataset")
