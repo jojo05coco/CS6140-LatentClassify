@@ -34,7 +34,10 @@ class CLF_DS(D.Dataset):
         # dataset number of samples
         self.N = self.X.shape[0]
         # number of labels
-        self.L = len(set(self.Y.numpy()))
+        if train_y_pth.endswith("pth"):
+            self.L = len(set(self.Y.numpy()))
+        else:
+            self.L = len(set(self.Y))
 
         # assert
         assert self.Y.shape[0] == self.N
