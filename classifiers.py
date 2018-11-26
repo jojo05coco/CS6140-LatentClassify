@@ -50,19 +50,29 @@ class AdversarialExample:
         diff_img = np.abs(diff_img)
         diff_img = diff_img.reshape((28, 28))
 
+        orig_img = self.x.reshape((28, 28))
+        orig_img = orig_img.detach().numpy()
+
         adv_img = self.adv_x.reshape((28, 28))
         adv_img = adv_img.detach().numpy()
 
+        # original image
+        fig.add_subplot(1, 4, 1)
+        plt.imshow(orig_img, cmap = 'Greys')
+        plt.title("Original")
         # adversarial image
-        fig.add_subplot(1, 3, 1)
+        fig.add_subplot(1, 4, 2)
         plt.imshow(adv_img, cmap = 'Greys')
+        plt.title("Adversary")
         # diff map
-        fig.add_subplot(1, 3, 2)
+        fig.add_subplot(1, 4, 3)
         plt.imshow(diff_img, cmap = 'Greys')
+        plt.title("delta")
         # probabilities
-        fig.add_subplot(1, 3, 3)
+        fig.add_subplot(1, 4, 4)
         p_range = np.arange(0, 10, 1)
         plt.bar(p_range, self.adv_x_probs)
+        plt.title("Adversary probabilities")
         plt.show()
 
     def __str__(self):

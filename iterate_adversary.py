@@ -15,6 +15,8 @@ af.close()
 exs = filter(lambda ex: ex is not None, exs)
 # remove all adversary whose norm is > 1.0
 exs = filter(lambda ex: ex.adv_diff_norm < 1.0, exs)
+# sort examples by increasing diff norm
+exs.sort(key = lambda ex: ex.adv_diff_norm)
 
 for ex in exs:
     print ex
