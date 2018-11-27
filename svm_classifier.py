@@ -107,6 +107,14 @@ class SVM_Classifier:
 
         return float(n_correct) / float(self.NTest)
 
+    def test(self, x):
+
+        x = x.detach().numpy()
+
+        pred = self.model.predict([x])
+
+        return pred
+
     # report
     def report(self):
 

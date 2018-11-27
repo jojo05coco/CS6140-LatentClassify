@@ -5,6 +5,9 @@ import torch
 
 ## L2 norm
 def l2(v):
+
+    assert len(v.shape) == 1
+
     #return np.sqrt(v.dot(v)
     return np.sqrt(v.T.dot(v))
 
@@ -34,6 +37,7 @@ def random_data_points(model, ds, nl, nsamples):
 
         classified_as = model.test(data).item()
 
+
         if (c != classified_as):
             continue
 
@@ -59,8 +63,16 @@ def Adversarial_L2Diff_Mean(examples):
     # extract all L2Norm differences
     l2_diffs = map(lambda ex: ex.adv_diff_norm, examples)
 
+    # norm of the unperturbed x
+    unperturbed_norm = map(lambda ex: l2(ex.x.detach().numpy()[0]), examples)
+
+    #print unperturbed_norm
+
+    # normalize differences
+    normalized = map(lambda l2_diff, up_norm: l2_diff / up_norm, l2_diffs, unperturbed_norm)
+
     # return mean of l2_diffs
-    return np.mean(l2_diffs)
+    return np.mean(normalized)
 
 # check correct classification
 def adversarial_correct_classification(exs):

@@ -123,9 +123,9 @@ def generate_advex(model_paths, report_folder = ""):
 
         # we need 5 data points from each label
         # we have 10 labels
-        data_points = random_data_points(model, model.test_ds, model.L, 5)
+        data_points = random_data_points(model, model.test_ds, model.L, 2)
         print "Model L ", model.L, " | ", len(data_points)
-        assert len(data_points) == model.L * 5
+        assert len(data_points) == model.L * 2
 
         # for all classes
         for progress, dp in enumerate(data_points):
@@ -153,7 +153,7 @@ def generate_advex(model_paths, report_folder = ""):
                                                 adv_x = x,
                                                 y_target = y_target,
                                                 #converge_fn = lambda target_p, diff_norm: diff_norm > 1.0 or target_p > 95.0,
-                                                converge_fn = lambda target_p, diff_norm: target_p > 95.0,
+                                                converge_fn = lambda target_p, diff_norm: target_p > 50.0,
                                                 debug = True)
                     adv_examples.append(advex)
 
@@ -190,48 +190,74 @@ def generate_advex(model_paths, report_folder = ""):
 
 # train_mnist()
 
+model_paths_mnist_HD = ["./MNIST_HD_img_Logistic_2L_2018-11-26_17-15-34/generic_Logistic_2L_Tr_acc_0.927566666667_Ts_acc_0.9258/model.pkl"]
+
 model_paths_mnist_img = ["./checkpoints/mnist_image_models/MNIST_img_Logistic_1L_2018-11-21_19-06-20/generic_Logistic_1L_Tr_acc_0.9249_Ts_acc_0.9245/model.pkl",
-            "./checkpoints/mnist_image_models/MNIST_img_Logistic_2L_2018-11-21_17-49-25/generic_Logistic_2L_Tr_acc_0.92145_Ts_acc_0.919/model.pkl",
-            "./checkpoints/mnist_image_models/MNIST_img_Logistic_LRL_2018-11-21_17-41-15/generic_Logistic_LRL_Tr_acc_0.940083333333_Ts_acc_0.94/model.pkl"]
+                        "./checkpoints/mnist_image_models/MNIST_img_Logistic_2L_2018-11-21_17-49-25/generic_Logistic_2L_Tr_acc_0.92145_Ts_acc_0.919/model.pkl",
+                        "./checkpoints/mnist_image_models/MNIST_img_Logistic_LRL_2018-11-21_17-41-15/generic_Logistic_LRL_Tr_acc_0.940083333333_Ts_acc_0.94/model.pkl"]
 
 model_paths_fmnist_img = ["./checkpoints/fmnist_image_models/FMNIST_img_Logistic_1L_2018-11-23_15-17-46/generic_Logistic_1L_Tr_acc_0.860516666667_Ts_acc_0.8401/model.pkl",
-            "./checkpoints/fmnist_image_models/FMNIST_img_Logistic_2L_2018-11-23_15-08-36/generic_Logistic_2L_Tr_acc_0.860766666667_Ts_acc_0.8419/model.pkl",
-            "./checkpoints/fmnist_image_models/FMNIST_img_Logistic_LRL_2018-11-23_14-59-20/generic_Logistic_LRL_Tr_acc_0.86835_Ts_acc_0.8472/model.pkl"]
+                          "./checkpoints/fmnist_image_models/FMNIST_img_Logistic_2L_2018-11-23_15-08-36/generic_Logistic_2L_Tr_acc_0.860766666667_Ts_acc_0.8419/model.pkl",
+                          "./checkpoints/fmnist_image_models/FMNIST_img_Logistic_LRL_2018-11-23_14-59-20/generic_Logistic_LRL_Tr_acc_0.86835_Ts_acc_0.8472/model.pkl"]
 
-model_paths_mnist_ae = ["./checkpoints/AE_MNIST_MODELS/Logistic_1L_2018-11-18_09-59-24/MNIST train dataset_Logistic_1L_Tr_acc_0.892416666667_Ts_acc_0.8984/model.pkl",
-        "./checkpoints/AE_MNIST_MODELS/Logistic_2L_2018-11-18_14-36-17/MNIST train dataset_Logistic_2L_Tr_acc_0.891316666667_Ts_acc_0.8945/model.pkl",
-        "./checkpoints/AE_MNIST_MODELS/Logistic_LRL_2018-11-18_05-22-27/MNIST train dataset_Logistic_LRL_Tr_acc_0.96355_Ts_acc_0.9579/model.pkl"]
+model_paths_mnist_ae = ["./checkpoints/MNIST_AE_MODELS/MNIST_AELogistic_1L_2018-11-25_21-44-35/MNIST_AE_Logistic_1L_Tr_acc_0.893133333333_Ts_acc_0.8985/model.pkl",
+                        "./checkpoints/MNIST_AE_MODELS/MNIST_AELogistic_2L_2018-11-25_21-47-51/MNIST_AE_Logistic_2L_Tr_acc_0.8915_Ts_acc_0.8982/model.pkl",
+                        "./checkpoints/MNIST_AE_MODELS/MNIST_AE_Logistic_LRL_2018-11-25_21-40-55/MNIST_AE_Logistic_LRL_Tr_acc_0.964183333333_Ts_acc_0.9584/model.pkl"]
 
-model_paths_mnist_vae = ["./checkpoints/VAE_MNIST_MODELS/Logistic_1L_2018-11-19_17-40-41/VAE MNIST train dataset_Logistic_1L_Tr_acc_0.851433333333_Ts_acc_0.8573/model.pkl",
-              "./checkpoints/VAE_MNIST_MODELS/Logistic_2L_2018-11-19_19-24-35/VAE MNIST train dataset_Logistic_2L_Tr_acc_0.847316666667_Ts_acc_0.8548/model.pkl",
-              "./checkpoints/VAE_MNIST_MODELS/Logistic_LRL_2018-11-19_14-50-32/VAE MNIST train dataset_Logistic_LRL_Tr_acc_0.9279_Ts_acc_0.9292/model.pkl"]
+model_paths_mnist_vae = ["./checkpoints/MNIST_VAE_MODELS/MNIST_VAELogistic_1L_2018-11-25_21-54-44/MNIST_VAE_Logistic_1L_Tr_acc_0.847383333333_Ts_acc_0.8537/model.pkl",
+                         "./checkpoints/MNIST_VAE_MODELS/MNIST_VAELogistic_2L_2018-11-25_21-57-54/MNIST_VAE_Logistic_2L_Tr_acc_0.844766666667_Ts_acc_0.8482/model.pkl",
+                         "./checkpoints/MNIST_VAE_MODELS/MNIST_VAE_Logistic_LRL_2018-11-25_21-51-16/MNIST_VAE_Logistic_LRL_Tr_acc_0.9332_Ts_acc_0.9287/model.pkl"]
 
-model_paths_fmnist_ae = ["./checkpoints/AE_FMNIST_MODELS/Logistic_1L_2018-11-19_04-00-11/MNIST train dataset_Logistic_1L_Tr_acc_0.813466666667_Ts_acc_0.7968/model.pkl",
-               "./checkpoints/AE_FMNIST_MODELS/Logistic_2L_2018-11-19_08-32-20/MNIST train dataset_Logistic_2L_Tr_acc_0.81425_Ts_acc_0.8005/model.pkl",
-               "./checkpoints/AE_FMNIST_MODELS/Logistic_LRL_2018-11-18_21-56-57/MNIST train dataset_Logistic_LRL_Tr_acc_0.85545_Ts_acc_0.8375/model.pkl"]
+model_paths_mnist_ae_l2 = ["./checkpoints/MNIST_AE_L2_MODELS/MNIST_AE_L2Logistic_1L_2018-11-25_22-05-01/MNIST_AE_L2_Logistic_1L_Tr_acc_0.845166666667_Ts_acc_0.8514/model.pkl",
+                          "./checkpoints/MNIST_AE_L2_MODELS/MNIST_AE_L2Logistic_2L_2018-11-25_22-08-19/MNIST_AE_L2_Logistic_2L_Tr_acc_0.840616666667_Ts_acc_0.8454/model.pkl",
+                          "./checkpoints/MNIST_AE_L2_MODELS/MNIST_AE_L2_Logistic_LRL_2018-11-25_22-01-26/MNIST_AE_L2_Logistic_LRL_Tr_acc_0.94495_Ts_acc_0.9374/model.pkl"]
 
-model_paths_fmnist_vae = ["./checkpoints/VAE_FMNIST_MODELS/Logistic_1L_2018-11-20_02-33-03/VAE FMNIST train dataset_Logistic_1L_Tr_acc_0.7444_Ts_acc_0.7371/model.pkl",
-        "./checkpoints/VAE_FMNIST_MODELS/Logistic_2L_2018-11-20_04-17-20/VAE FMNIST train dataset_Logistic_2L_Tr_acc_0.7575_Ts_acc_0.7463/model.pkl",
-        "./checkpoints/VAE_FMNIST_MODELS/Logistic_LRL_2018-11-20_00-40-34/VAE FMNIST train dataset_Logistic_LRL_Tr_acc_0.804583333333_Ts_acc_0.7966/model.pkl"]
+model_paths_mnist_vae_l2 = ["./checkpoints/MNIST_VAE_L2_MODELS/MNIST_VAE_L2Logistic_1L_2018-11-25_22-15-30/MNIST_VAE_L2_Logistic_1L_Tr_acc_0.81295_Ts_acc_0.8197/model.pkl",
+                            "./checkpoints/MNIST_VAE_L2_MODELS/MNIST_VAE_L2Logistic_2L_2018-11-25_22-18-50/MNIST_VAE_L2_Logistic_2L_Tr_acc_0.807983333333_Ts_acc_0.8155/model.pkl",
+                            "./checkpoints/MNIST_VAE_L2_MODELS/MNIST_VAE_L2_Logistic_LRL_2018-11-25_22-11-51/MNIST_VAE_L2_Logistic_LRL_Tr_acc_0.91205_Ts_acc_0.9092/model.pkl"]
 
-model_paths_fmnist_ae_proj = ["./checkpoints/PROJ_FMNIST_MODELS/Logistic_1L_2018-11-24_21-01-00/Projection AE FMNIST train dataset_Logistic_1L_Tr_acc_0.762166666667_Ts_acc_0.753/model.pkl",
-        "./checkpoints/PROJ_FMNIST_MODELS/Logistic_2L_2018-11-24_21-05-34/Projection AE FMNIST train dataset_Logistic_2L_Tr_acc_0.7552_Ts_acc_0.7474/model.pkl",
-        "./checkpoints/PROJ_FMNIST_MODELS/Logistic_LRL_2018-11-24_20-56-12/Projection AE FMNIST train dataset_Logistic_LRL_Tr_acc_0.810433333333_Ts_acc_0.7923/model.pkl"]
+model_paths_fmnist_ae = ["./checkpoints/FMNIST_AE_MODELS/FMNIST_AELogistic_1L_2018-11-25_22-26-19/FMNIST_AE_Logistic_1L_Tr_acc_0.816666666667_Ts_acc_0.8068/model.pkl",
+                         "./checkpoints/FMNIST_AE_MODELS/FMNIST_AELogistic_2L_2018-11-25_22-30-03/FMNIST_AE_Logistic_2L_Tr_acc_0.82645_Ts_acc_0.812/model.pkl",
+                         "./checkpoints/FMNIST_AE_MODELS/FMNIST_AE_Logistic_LRL_2018-11-25_22-22-21/FMNIST_AE_Logistic_LRL_Tr_acc_0.857916666667_Ts_acc_0.8382/model.pkl"]
+
+model_paths_fmnist_vae = ["./checkpoints/FMNIST_VAE_MODELS/FMNIST_VAELogistic_1L_2018-11-25_22-37-32/FMNIST_VAE_Logistic_1L_Tr_acc_0.758166666667_Ts_acc_0.7472/model.pkl",
+                          "./checkpoints/FMNIST_VAE_MODELS/FMNIST_VAELogistic_2L_2018-11-25_22-40-56/FMNIST_VAE_Logistic_2L_Tr_acc_0.760983333333_Ts_acc_0.7516/model.pkl",
+                          "./checkpoints/FMNIST_VAE_MODELS/FMNIST_VAE_Logistic_LRL_2018-11-25_22-33-58/FMNIST_VAE_Logistic_LRL_Tr_acc_0.812016666667_Ts_acc_0.794/model.pkl"]
+
+model_paths_fmnist_ae_l2 = ["./checkpoints/FMNIST_AE_L2_MODELS/FMNIST_AE_L2Logistic_1L_2018-11-25_22-48-06/FMNIST_AE_L2_Logistic_1L_Tr_acc_0.762583333333_Ts_acc_0.751/model.pkl",
+                            "./checkpoints/FMNIST_AE_L2_MODELS/FMNIST_AE_L2Logistic_2L_2018-11-25_22-51-18/FMNIST_AE_L2_Logistic_2L_Tr_acc_0.759566666667_Ts_acc_0.7484/model.pkl",
+                            "./checkpoints/FMNIST_AE_L2_MODELS/FMNIST_AE_L2_Logistic_LRL_2018-11-25_22-44-33/FMNIST_AE_L2_Logistic_LRL_Tr_acc_0.8097_Ts_acc_0.7931/model.pkl"]
+
+model_paths_fmnist_vae_l2 = ["./checkpoints/FMNIST_VAE_L2_MODELS/FMNIST_VAE_L2Logistic_1L_2018-11-25_22-58-16/FMNIST_VAE_L2_Logistic_1L_Tr_acc_0.686916666667_Ts_acc_0.6768/model.pkl",
+                             "./checkpoints/FMNIST_VAE_L2_MODELS/FMNIST_VAE_L2Logistic_2L_2018-11-25_23-01-43/FMNIST_VAE_L2_Logistic_2L_Tr_acc_0.680983333333_Ts_acc_0.6684/model.pkl",
+                             "./checkpoints/FMNIST_VAE_L2_MODELS/FMNIST_VAE_L2_Logistic_LRL_2018-11-25_22-54-42/FMNIST_VAE_L2_Logistic_LRL_Tr_acc_0.766366666667_Ts_acc_0.7502/model.pkl"]
 
 ## generate advex
 
-generate_advex(model_paths_mnist_img, "./mnist_img_95conf_advex")
+#generate_advex(model_paths_mnist_HD, "./MNIST_HD_advex")
 
-generate_advex(model_paths_fmnist_img, "./fmnist_img_95conf_advex")
+#generate_advex(model_paths_mnist_img,     "./adversary_dataset/CONFIDENCE_75/mnist_img_75conf_advex")
 
-generate_advex(model_paths_mnist_ae, "./mnist_ae_95conf_advex")
+#generate_advex(model_paths_fmnist_img,    "./adversary_dataset/CONFIDENCE_75/fmnist_img_75conf_advex")
 
-generate_advex(model_paths_mnist_vae, "./mnist_vae_95conf_advex")
+#generate_advex(model_paths_mnist_vae,     "./adversary_dataset/CONFIDENCE_50/mnist_vae_50conf_advex")
 
-generate_advex(model_paths_fmnist_ae, "./fmnist_ae_95conf_advex")
+#generate_advex(model_paths_fmnist_vae,    "./adversary_dataset/CONFIDENCE_50/fmnist_vae_50conf_advex")
 
-generate_advex(model_paths_fmnist_vae, "./fmnist_vae_95conf_advex")
-
-generate_advex(model_paths_fmnist_ae_proj, "./fmnist_ae_proj_95conf_advex")
+#generate_advex(model_paths_mnist_ae,      "./adversary_dataset/CONFIDENCE_95/mnist_ae_95conf_advex")
+#
+#generate_advex(model_paths_mnist_vae,     "./adversary_dataset/CONFIDENCE_95/mnist_vae_95conf_advex")
+#
+#generate_advex(model_paths_mnist_ae_l2,   "./adversary_dataset/CONFIDENCE_95/mnist_ae_l2_95conf_advex")
+#
+#generate_advex(model_paths_mnist_vae_l2,  "./adversary_dataset/CONFIDENCE_95/mnist_vae_l2_95conf_advex")
+#
+#generate_advex(model_paths_fmnist_ae,     "./adversary_dataset/CONFIDENCE_95/fmnist_ae_95conf_advex")
+#
+#generate_advex(model_paths_fmnist_vae,    "./adversary_dataset/CONFIDENCE_95/fmnist_vae_95conf_advex")
+#
+#generate_advex(model_paths_fmnist_ae_l2,  "./adversary_dataset/CONFIDENCE_95/fmnist_ae_l2_95conf_advex")
+#
+#generate_advex(model_paths_fmnist_vae_l2, "./adversary_dataset/CONFIDENCE_95/fmnist_vae_l2_95conf_advex")
 
 exit(-1)

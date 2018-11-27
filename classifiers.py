@@ -302,6 +302,8 @@ class Classifier:
             # keep it as close to x as possible
             adv_x = adv_x - eta * (adv_x.grad + lam * (adv_x - x))
 
+            adv_x = torch.clamp(adv_x, 0.0, 1.0)
+
             time = time + 1
 
             # proactive change of learning rate
@@ -424,11 +426,12 @@ class Classifier:
             # number of eigen values to make zero
             nreduce = math.ceil(float(percent) * float(nev) / 100.0)
 
-            #print "nreduce ", nreduce, " / ", nev
+            print "nreduce ", nreduce, " / ", nev
 
             for i in range(1, int(nreduce) + 1):
                 # downgrade eigen values
-                evalues[-1 * i] = evalues[-1 * i] / 10.0
+                #evalues[-1 * i] = evalues[-1 * i] / 10.0
+                evalues[-1 * i] = 0.0
 
             # rank reduced weight matrix
             w = np.matmul(np.matmul(evectors, np.diag(evalues)), vt)
@@ -437,7 +440,7 @@ class Classifier:
             l.weight = torch.nn.Parameter(torch.tensor(w))
 
             # svd only the first layer
-            #break
+            break
 
         train_acc = self.train_loss()[1]
         test_acc  = self.test_loss()[1]
@@ -483,9 +486,16 @@ class Classifier:
 
         self.model.eval()
 
-        log_softmax = self.model(x)
+        with torch.no_grad():
 
-        prediction_label = log_softmax[0].max(0)[1]
+            x = x.reshape((1, self.D))
+
+
+            log_softmax = self.model(x)
+
+            prediction_label = log_softmax[0].max(0)[1]
+
+            probs = np.exp(log_softmax.detach().numpy())
 
         return prediction_label
 

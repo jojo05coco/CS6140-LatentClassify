@@ -64,72 +64,79 @@ def train_nn(train_x, train_y, test_x, test_y, ds_desc):
 
 ## SVM classifier ##############################################################
 
-#Cs = [1, 10, 20, 50]
-#
-#for c in Cs:
-#    report_folder = "SVM_" + str(c)
-#    svm_clf = SVM_Classifier(latent_codes_train,
-#                             targets_train,
-#                             latent_codes_test,
-#                             targets_test,
-#                             C = c,
-#                             report_folder = report_folder)
-#
-#    svm_clf.train()
-#    svm_clf.report()
+def train_svm(train_x, train_y, test_x, test_y, ds_desc):
+
+    Cs = [1, 50, 10]
+
+    for c in Cs:
+        report_folder = ds_desc + "_SVM_" + str(c)
+        svm_clf = SVM_Classifier(train_x,
+                                 train_y,
+                                 test_x,
+                                 test_y,
+                                 C = c,
+                                 report_folder = report_folder)
+
+        svm_clf.train()
+        svm_clf.report()
 
 ## AE MNIST
-train_x = make_npy("./test/AE_MNIST-latent_tr.pth")
-train_y = make_npy("./test/AE_MNIST-targets_tr.pth")
-test_x  = make_npy("./test/AE_MNIST-latent_ts.pth")
-test_y  = make_npy("./test/AE_MNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "MNIST_AE")
-
+#train_x = make_npy("./test/AE_MNIST-latent_tr.pth")
+#train_y = make_npy("./test/AE_MNIST-targets_tr.pth")
+#test_x  = make_npy("./test/AE_MNIST-latent_ts.pth")
+#test_y  = make_npy("./test/AE_MNIST-targets_ts.pth")
+#train_svm(train_x, train_y, test_x, test_y, "MNIST_AE")
+#
 ## VAE MNIST
-train_x = make_npy("./test/VAE_MNIST-latent_tr.pth")
-train_y = make_npy("./test/VAE_MNIST-targets_tr.pth")
-test_x  = make_npy("./test/VAE_MNIST-latent_ts.pth")
-test_y  = make_npy("./test/VAE_MNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "MNIST_VAE")
+#train_x = make_npy("./test/VAE_MNIST-latent_tr.pth")
+#train_y = make_npy("./test/VAE_MNIST-targets_tr.pth")
+#test_x  = make_npy("./test/VAE_MNIST-latent_ts.pth")
+#test_y  = make_npy("./test/VAE_MNIST-targets_ts.pth")
+#train_svm(train_x, train_y, test_x, test_y, "MNIST_VAE")
 
-## AE MNIST L2
-train_x = make_npy("./test/AE_MNIST_L2latent_tr.npy")
-train_y = make_npy("./test/AE_MNIST-targets_tr.pth")
-test_x  = make_npy("./test/AE_MNIST_L2latent_ts.npy")
-test_y  = make_npy("./test/AE_MNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "MNIST_AE_L2")
 
-## VAE MNIST L2
+# AE MNIST L2
+#train_x = make_npy("./test/AE_MNIST_L2latent_tr.npy")
+#train_y = make_npy("./test/AE_MNIST-targets_tr.pth")
+#test_x  = make_npy("./test/AE_MNIST_L2latent_ts.npy")
+#test_y  = make_npy("./test/AE_MNIST-targets_ts.pth")
+#train_svm(train_x, train_y, test_x, test_y, "MNIST_AE_L2")
+
+
+# VAE MNIST L2
 train_x = make_npy("./test/VAE_MNIST_L2latent_tr.pth")
 train_y = make_npy("./test/VAE_MNIST-targets_tr.pth")
 test_x  = make_npy("./test/VAE_MNIST_L2latent_ts.pth")
 test_y  = make_npy("./test/VAE_MNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "MNIST_VAE_L2")
+train_svm(train_x, train_y, test_x, test_y, "MNIST_VAE_L2")
 
-## AE FMNIST
+
+# AE FMNIST
 train_x = make_npy("./test/AE_FMNIST-latent_tr.pth")
 train_y = make_npy("./test/AE_FMNIST-targets_tr.pth")
 test_x  = make_npy("./test/AE_FMNIST-latent_ts.pth")
 test_y  = make_npy("./test/AE_FMNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "FMNIST_AE")
+train_svm(train_x, train_y, test_x, test_y, "FMNIST_AE")
 
-## VAE FMNIST
+
+# VAE FMNIST
 train_x = make_npy("./test/VAE_FMNIST-latent_tr.pth")
 train_y = make_npy("./test/VAE_FMNIST-targets_tr.pth")
 test_x  = make_npy("./test/VAE_FMNIST-latent_ts.pth")
 test_y  = make_npy("./test/VAE_FMNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "FMNIST_VAE")
+train_svm(train_x, train_y, test_x, test_y, "FMNIST_VAE")
+
 
 ## AE FMNIST L2
 train_x = make_npy("./test/AE_FMNIST_L2latent_tr.npy")
 train_y = make_npy("./test/AE_FMNIST-targets_tr.pth")
 test_x  = make_npy("./test/AE_FMNIST_L2latent_ts.pth")
 test_y  = make_npy("./test/AE_FMNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "FMNIST_AE_L2")
+train_svm(train_x, train_y, test_x, test_y, "FMNIST_AE_L2")
 
 ## VAE FMNIST L2
 train_x = make_npy("./test/VAE_FMNIST_L2latent_tr.pth")
 train_y = make_npy("./test/VAE_FMNIST-targets_tr.pth")
 test_x  = make_npy("./test/VAE_FMNIST_L2latent_ts.pth")
 test_y  = make_npy("./test/VAE_FMNIST-targets_ts.pth")
-train_nn(train_x, train_y, test_x, test_y, "FMNIST_VAE_L2")
+train_svm(train_x, train_y, test_x, test_y, "FMNIST_VAE_L2")
